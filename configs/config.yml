@@ -1,0 +1,6 @@
+db:
+  dbname: "test"
+  collection: "test"
+
+graphql:
+  port: "8080"

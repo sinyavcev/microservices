@@ -1,9 +1,14 @@
 package main
 
 import (
-	"log"
-
+	"context"
+	"encoding/json"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/sinyavcev/microservices/receiver/model"
+	"github.com/sinyavcev/microservices/receiver/pkg/repository"
+	"github.com/sinyavcev/microservices/receiver/server"
+	"github.com/spf13/viper"
+	"log"
 )
 
 func failOnError(err error, msg string) {
@@ -13,7 +18,17 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
+
+	if err := initConfig(); err != nil {
+		log.Fatalf("error initializing configs: %s", err.Error())
+	}
+
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+
+	client, err := repository.Init(context.Background(), viper.GetString("db.dbname"))
+
+	db := repository.NewRepository(client.Collection(viper.GetString("db.dbname")))
+
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -41,15 +56,23 @@ func main() {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
-
-	var forever chan struct{}
-
+	var DataArr []model.Stock
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			json.Unmarshal(d.Body, &DataArr)
+			for _, item := range DataArr {
+				log.Printf("stock: %+v\\", item)
+				db.Create(context.Background(), item)
+			}
 		}
 	}()
 
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
+	server.Run(*client)
+}
+
+func initConfig() error {
+	viper.AddConfigPath("configs")
+	viper.SetConfigName("config")
+	return viper.ReadInConfig()
 }

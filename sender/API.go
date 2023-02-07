@@ -8,33 +8,40 @@ import (
 	"net/http"
 )
 
-type Stock struct {
-	GlobalQuote struct {
-		Symbol string `json:"01. symbol"`
-		Open   string `json:"02. open"`
-		High   string `json:"03. high"`
-		Low    string `json:"04. low"`
-		Price  string `json:"05. price"`
-		Volume string `json:"06. volume"`
-	} `json:"Global Quote"`
+type GlobalQuote struct {
+	Stock Stock `json:"Global Quote"`
 }
 
-func getStockQuotes(symbol string) ([]byte, error) {
-	var stock Stock
-	URL := fmt.Sprintf("https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=%s&apikey=ZR48ZK13NDQYGPLU", symbol)
-	resp, err := http.Get(URL)
-	if err != nil {
-		log.Fatalln(err)
+type Stock struct {
+	Symbol string `json:"01. symbol"`
+	Open   string `json:"02. open"`
+	High   string `json:"03. high"`
+	Low    string `json:"04. low"`
+	Day    string `json:"07. latest trading day"`
+}
+
+func getStockQuotes() ([]byte, error) {
+	nameStock := [3]string{"AAPL", "IBM", "BA"}
+	var GlobalQuote GlobalQuote
+	var infoStock []Stock
+	for _, value := range nameStock {
+		URL := fmt.Sprintf("https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=%s&apikey=ZR48ZK13NDQYGPLU", value)
+		resp, err := http.Get(URL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		errUnmarshal := json.Unmarshal(body, &GlobalQuote)
+		if errUnmarshal != nil {
+			log.Fatalln(err)
+		}
+		infoStock = append(infoStock, GlobalQuote.Stock)
 	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	errUnmarshal := json.Unmarshal(body, &stock)
-	if errUnmarshal != nil {
-		log.Fatalln(err)
-	}
-	var parseData, errMarshal = json.Marshal(&stock)
+	parseData, errMarshal := json.Marshal(infoStock)
+
 	if errMarshal != nil {
 		log.Fatalln(errMarshal)
 	}

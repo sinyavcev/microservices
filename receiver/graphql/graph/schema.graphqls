@@ -1,0 +1,14 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+type Stock {
+  Symbol: String!
+  Open: String!
+  High: String!
+  Low: String!
+  Day: String!
+}
+
+type Query {
+  stocks(symbol: String): [Stock!]!
+}
