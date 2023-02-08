@@ -17,7 +17,7 @@ func main() {
 	var data []byte
 	var err error
 	data, err = getStockQuotes()
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 

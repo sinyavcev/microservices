@@ -1,10 +1,11 @@
-module github.com/sinyavcev/microservices
+module receiver
 
 go 1.19
 
 require (
 	github.com/99designs/gqlgen v0.17.24
-	github.com/rabbitmq/amqp091-go v1.6.0
+	github.com/rabbitmq/amqp091-go v1.6.1
+	github.com/sinyavcev/microservices v0.0.0-20230207133630-830f2cba4578
 	github.com/spf13/viper v1.15.0
 	github.com/vektah/gqlparser/v2 v2.5.1
 	go.mongodb.org/mongo-driver v1.11.1
